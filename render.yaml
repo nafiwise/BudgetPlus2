@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: budgetplus-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
+      - key: ALLOW_REMOTE_CLIENTS
+        value: "true"
+      - key: LITHIC_ENV
+        value: sandbox
+      - key: LITHIC_CARD_PROGRAM_TOKEN
+        value: 00000000-0000-0000-2000-000000000000
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+

@@ -1,0 +1,19 @@
+{
+  "appId": "com.budgetplus.app",
+  "appName": "BudgetPlus",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "budgetplus"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0c0f0d"
+    },
+    "Keyboard": {
+      "resize": "body"
+    }
+  }
+}
+
