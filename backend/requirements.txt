@@ -1,0 +1,11 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.34,<1
+python-multipart>=0.0.20,<1
+openpyxl>=3.1.5,<4
+google-genai>=1.0,<3
+python-dotenv>=1.0,<2
+pytest>=8,<10
+httpx>=0.28,<1
+plaid-python==45.0.0
+cryptography>=50.0.2,<51
+lithic[webhooks]==0.125.0

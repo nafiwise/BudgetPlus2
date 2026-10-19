@@ -1,0 +1,29 @@
+import { useEffect, useRef, useState } from 'react';
+import { api } from '../utils/api.js';
+import { money } from '../utils/format.js';
+const newId = () => globalThis.crypto?.randomUUID?.() || `demo-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+export default function MerchantDemo() {
+ const token = window.location.pathname.startsWith('/tap/') ? decodeURIComponent(window.location.pathname.split('/')[2] || '') : 'demo-card-001';
+ const [merchant,setMerchant] = useState('Chipotle');
+ const [amount,setAmount] = useState('18.42');
+ const [category,setCategory] = useState('Dining');
+ const [importance,setImportance] = useState('');
+ const [categories,setCategories] = useState(['Dining']);
+ const [busy,setBusy] = useState(false);
+ const [result,setResult] = useState(null);
+ const [error,setError] = useState('');
+ const [ready,setReady] = useState(false);
+ const [lithic,setLithic] = useState(null);
+ const pending = useRef(null);
+ const sending = useRef(false);
+ useEffect(() => { Promise.all([api('/state'),api('/lithic/status')]).then(([s,l]) => { setLithic(l); const names=s.analysis.budget.categories.map(c=>c.name);setCategories(names);if (!names.includes('Dining')) setCategory(names[0]||'');setReady(true); }).catch(e=>setError(e.message)); },[]);
+ async function submit(e) {
+   e.preventDefault(); if(sending.current)return; sending.current=true;setBusy(true);setError('');
+   pending.current ||= lithic?.enabled ? { merchant, amount:Number(amount), category, requestId:newId() } : { cardToken:token, merchant, amount:Number(amount), category, importance:importance||null, requestId:newId() };
+   try {setResult(await api(lithic?.enabled?'/lithic/simulate':'/authorize',{method:'POST',body:JSON.stringify(pending.current)}));}
+   catch(e){setError(`${e.message} Retry to retrieve the same authorization; no second purchase will be created.`);}
+   finally{setBusy(false);sending.current=false;}
+ }
+ function fresh() {pending.current=null;setResult(null);setError('');}
+ return <div className="merchant-site"><header><span className="merchant-logo">◉ CHIPOTLE</span><span>INDEPENDENT DEMO CHECKOUT</span></header><main className="merchant-checkout"><section className="merchant-receipt"><div className="eyebrow">YOUR ORDER · DEMO STORE</div><h1>Your order.</h1><div className="receipt-line"><span>Burrito Bowl</span><strong>$14.75</strong></div><div className="receipt-line"><span>Drink</span><strong>$3.67</strong></div><div className="receipt-line receipt-total"><span>TOTAL</span><strong>{money(Number(amount)||0)}</strong></div>{amount!=='18.42' && <p>Custom demo total overrides the sample items.</p>}<p className="merchant-disclaimer">{lithic?.enabled ? 'Lithic Sandbox mode: authorization must pass through Lithic ASA. ' : 'Local simulation mode. '}Prototype checkout. No real charges or funds moved.</p></section><section className="merchant-terminal"><span className="eyebrow">BUDGETPLUS</span>{!result ? <><h2>{busy?'Checking your plan…':'Waiting for BudgetPlus…'}</h2><form onSubmit={submit}><fieldset disabled={busy||!!pending.current}><details><summary>Configure demo purchase</summary><label>Merchant<input required maxLength={200} value={merchant} onChange={e=>setMerchant(e.target.value)}/></label><label>Amount ($)<input required type="number" min="0.01" max="1000000" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)}/></label><label>Category<select required value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></label><label hidden={lithic?.enabled}>Purchase importance<select value={importance} onChange={e=>setImportance(e.target.value)}><option value="">Use profile recommendation</option>{['MUST PAY','FLEXIBLE','CAN WAIT'].map(v=><option key={v}>{v}</option>)}</select></label></details></fieldset><div className="tap-symbol">)))</div><p>BudgetPlus •••• {lithic?.card?.last_four || '2026'}</p><button className="primary-button" disabled={busy||!ready||!category}>{busy?'Authorizing…':pending.current?'Retry same authorization':'Tap / Simulate BudgetPlus Card'}</button></form>{!categories.length && <p>Add a category in the BudgetPlus Money page first, then reload.</p>}</> : <div className={`authorization ${result.status}`} role="status"><span className="approval-symbol">{result.approved?'✓':'—'}</span><h2>{result.approved?'APPROVED':'DECLINED'}</h2><p>SIMULATED PAYMENT · {merchant} · {money(result.amount)}</p><p>BudgetPlus •••• {lithic?.card?.last_four || '2026'}</p>{result.approved && result.selectedCard && <p>Funded by: <strong>{result.selectedCard}</strong></p>}{result.financialWarning&&<p className="warning-text">{result.approved ? 'Approved with a budget warning.' : 'Purchase blocked by your guardrails.'}</p>}<details><summary>View decision</summary><p>{result.reason}</p>{result.financialWarning&&<p>{result.financialWarning}</p>}{result.approved&&result.provider!=='Lithic Sandbox'&&<p>{result.rewardRate}% cash-equivalent rewards · {money(result.estimatedReward)} estimated</p>}<p>Category remaining: {result.remaining_after_purchase != null ? money(result.remaining_after_purchase) : result.categoryImpact ? money(result.categoryImpact.remaining) : 'Unchanged'}</p><p>BudgetPlus Score impact: {result.scoreImpact}</p><p>Authorization: {result.authorizationId}</p>{result.provider==='Lithic Sandbox'&&<><p>Provider: Lithic Sandbox / Verified ASA: {result.asaVerified?'Yes':'No'}</p><p>BudgetPlus decision: {result.decision_type||'No ASA decision received'} / ASA response: {result.lithicResult||'None'}</p><p>Lithic result: {result.networkResult||'Awaiting confirmation'} / {result.networkStatus}</p></>}<p>{result.paymentNotice}</p></details><button className="secondary-button" onClick={fresh}>Start another purchase</button></div>}{error && <p className="notice" role="alert">{error}</p>}<a href="/" className="text-button">Open BudgetPlus app ↗</a></section></main></div>;
+}

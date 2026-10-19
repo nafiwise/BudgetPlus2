@@ -1,0 +1,6 @@
+import { useState } from 'react';
+import { money } from '../utils/format.js';
+export default function BudgetCategories({ categories }) {
+ const [expanded,setExpanded]=useState(false);
+ return <section className="panel budget-panel"><h2>Category plan</h2><div className="category-list">{categories.slice(0,expanded?categories.length:4).map(c=><details className={`category-item ${c.remaining<0?'over-budget':''}`} key={c.name}><summary><span><strong>{c.name}</strong><small className="importance">{c.importance || 'FLEXIBLE'}</small></span><span><strong>{money(Math.abs(c.remaining))} {c.remaining<0?'over':c.importance==='MUST PAY'?'protected':'left'}</strong><small>{c.upcoming?`Due ${c.upcoming.date}`:`Limit: ${money(c.target)}`}</small><progress value={Math.min(c.spent,c.target)} max={Math.max(1,c.target)} aria-label={`${c.name}: ${money(c.spent)} spent of ${money(c.target)}`}/></span></summary><p>{c.status} · {money(c.spent)} spent</p><p>{c.recommendation}</p>{c.upcoming&&<p>{c.upcoming.merchant} · {money(c.upcoming.amount)} · {c.upcoming.date}</p>}</details>)}</div>{categories.length>4&&<button className="text-button" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'Show fewer':`All ${categories.length} categories`}</button>}{!categories.length&&<p className="category-advice">Import history or add your first category.</p>}</section>;
+}

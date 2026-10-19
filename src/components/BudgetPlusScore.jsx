@@ -1,0 +1,4 @@
+import { ScoreRing } from './Visuals.jsx';
+export default function BudgetPlusScore({ score }) {
+ return <section className="panel score-panel"><h2>BudgetPlus Score</h2><div className="score-summary"><div><ScoreRing value={score.value}/><p>{score.rating}{score.provisional ? ' | Provisional' : ''}</p></div><ul className="score-reasons">{[score.reasons[0],score.reasons[2]].filter(Boolean).map(r=><li key={r}>{r}</li>)}</ul></div><details><summary>Why {score.value}?</summary><ul className="score-reasons">{score.reasons.map(r=><li key={r}>{r.replace(/([\d.]+) months of runway/,(_,months)=>`About ${Math.round(Number(months)*4.35)} weeks of money`)}</li>)}</ul><p>Financial health, not a credit score. Internal index: {score.healthIndex.toFixed(1)} / 100. Display: round(300 + index * 5.5).</p><p>Essential coverage 25%, funds duration 20%, category pace 20%, card debt 15%, projected balance 10%, avoidable bills 10%.</p></details></section>;
+}

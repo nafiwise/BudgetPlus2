@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.tools/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+backend/data/*
+!backend/data/.gitkeep
+*.plaid-key
+*.lithic-key
+*.local-api-key

@@ -1,0 +1,4 @@
+import { CreditCard, Wifi } from 'lucide-react';
+export default function CardOverview({ data }) {
+ return <div className="card-overview"><div className="card-shadow-layer"/><div className="budgetplus-card premium-card" aria-label={`BudgetPlus Card ending in ${data.lithicCard?.last_four || '2026'}`}><div className="card-brand"><span>BudgetPlus</span><b>+</b></div><div className="card-hardware"><span className="metal-chip"><CreditCard size={29}/></span><Wifi size={21}/></div><strong>One card.<br/>No decisions.</strong><div className="card-bottom"><span className="card-number">•••• {data.lithicCard?.last_four || '2026'}</span><span className="card-mark">BUDGETPLUS / ONE</span></div></div><div className="card-status"><span><i/>{data.lithicCard ? `Lithic Sandbox / ${data.lithicCard.state}` : 'Smart Routing ON'}</span><span>{data.cards.length} funding cards connected</span></div></div>;
+}
